@@ -5,6 +5,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Projects: undefined;
+  ProjectDetail: { projectId: string };
   ONGs: undefined;
   Home: undefined;
 };

@@ -3,13 +3,18 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Project } from '../services/api';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ProjectsStackParamList } from '../navigation/ProjectsStackNavigator';
 
 interface ProjectCardProps {
   project: Project;
+  onViewDetails?: (projectId: string) => void;
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails }) => {
   const theme = useTheme<Theme>();
+  const navigation = useNavigation<NativeStackNavigationProp<ProjectsStackParamList>>();
 
   const formatDate = (dateString: string) => {
     try {
@@ -18,6 +23,19 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       return date.toLocaleDateString('es-ES', options);
     } catch (error) {
       return 'Fecha no disponible';
+    }
+  };
+
+  const handleViewDetails = () => {
+    if (onViewDetails) {
+      onViewDetails(project.id);
+    } else {
+      // Intenta navegar directamente (esto podría fallar en navegación anidada)
+      try {
+        navigation.navigate('ProjectDetail', { projectId: project.id });
+      } catch (error) {
+        console.error('Error al navegar:', error);
+      }
     }
   };
 
@@ -84,6 +102,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       
       <TouchableOpacity 
         style={[styles.button, { backgroundColor: theme.colors.purplePrimary }]}
+        onPress={handleViewDetails}
       >
         <Text style={[styles.buttonText, { color: theme.colors.white }]}>Ver detalles</Text>
       </TouchableOpacity>

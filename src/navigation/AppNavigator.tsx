@@ -1,7 +1,7 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { HomeScreen } from '../screens/HomeScreen';
-import { ProjectsScreen } from '../screens/ProjectsScreen';
+import { ProjectsStackNavigator } from './ProjectsStackNavigator';
 import { ONGsScreen } from '../screens/ONGsScreen';
 import { Header } from '../components/Header';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
@@ -80,7 +80,7 @@ export const AppNavigator = () => {
       />
       <Drawer.Screen 
         name="Projects" 
-        component={ProjectsScreen} 
+        component={ProjectsStackNavigator} 
         options={{ title: 'Proyectos' }}
       />
       <Drawer.Screen 

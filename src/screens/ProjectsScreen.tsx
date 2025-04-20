@@ -9,7 +9,10 @@ import { ProjectFilter } from '../components/ProjectFilter';
 import { Pagination } from '../components/Pagination';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
-import { Props } from '../navigation/types';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ProjectsStackParamList } from '../navigation/ProjectsStackNavigator';
+
+type Props = NativeStackScreenProps<ProjectsStackParamList, 'ProjectsList'>;
 
 export const ProjectsScreen = ({ navigation }: Props) => {
   const theme = useTheme<Theme>();
@@ -133,6 +136,12 @@ export const ProjectsScreen = ({ navigation }: Props) => {
     loadProjects(page, filterParams);
   };
 
+  const handleViewProjectDetails = (projectId: string) => {
+    // Navegar explícitamente a la pantalla de detalles
+    navigation.navigate('ProjectDetail', { projectId });
+    console.log('Navegando a ProjectDetail con ID:', projectId);
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
       <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>
@@ -222,7 +231,12 @@ export const ProjectsScreen = ({ navigation }: Props) => {
       ) : (
         <FlatList
           data={projects}
-          renderItem={({ item }) => <ProjectCard project={item} />}
+          renderItem={({ item }) => (
+            <ProjectCard 
+              project={item} 
+              onViewDetails={handleViewProjectDetails}
+            />
+          )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[
             styles.listContent,
