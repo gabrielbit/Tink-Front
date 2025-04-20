@@ -156,15 +156,18 @@ export const ProjectsScreen = ({ navigation }: Props) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>
-        Proyectos
-      </Text>
-      
-      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-        {totalItems} {totalItems === 1 ? 'proyecto encontrado' : 'proyectos encontrados'}
-      </Text>
-      
-      <ProjectFilter onFilter={handleFilterChange} />
+      <View style={styles.titleRow}>
+        <ProjectFilter onFilter={handleFilterChange} />
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>
+            Proyectos
+          </Text>
+          
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            {totalItems} {totalItems === 1 ? 'proyecto encontrado' : 'proyectos encontrados'}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -176,12 +179,12 @@ export const ProjectsScreen = ({ navigation }: Props) => {
       <View style={styles.emptyContainer}>
         {/* Icono o ilustración */}
         <View style={styles.emptyIconContainer}>
-          <View style={[styles.emptyIcon, { backgroundColor: theme.colors.purpleLight }]}>
+          <View style={[styles.emptyIcon, { backgroundColor: theme.colors.primaryLight }]}>
             <Text style={styles.emptyIconText}>📋</Text>
           </View>
         </View>
         
-        <Text style={[styles.emptyTitle, { color: theme.colors.purplePrimary }]}>
+        <Text style={[styles.emptyTitle, { color: theme.colors.primary }]}>
           {hasActiveFilters 
             ? 'No se encontraron proyectos' 
             : 'Aún no hay proyectos'}
@@ -221,7 +224,7 @@ export const ProjectsScreen = ({ navigation }: Props) => {
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.purplePrimary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
           Cargando proyectos...
         </Text>
@@ -261,8 +264,8 @@ export const ProjectsScreen = ({ navigation }: Props) => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={[theme.colors.purplePrimary]}
-              tintColor={theme.colors.purplePrimary}
+              colors={[theme.colors.primary]}
+              tintColor={theme.colors.primary}
             />
           }
         />
@@ -278,6 +281,13 @@ const styles = StyleSheet.create({
   header: {
     padding: 16,
     backgroundColor: 'transparent',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    marginLeft: 16,
   },
   title: {
     fontSize: 24,
