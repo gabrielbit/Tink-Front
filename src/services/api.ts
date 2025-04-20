@@ -13,6 +13,8 @@ export interface Organization {
   facebookUrl?: string;
   websiteUrl?: string;
   slug?: string;
+  mainImage?: string;
+  country?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +36,7 @@ export interface Project {
   maxAmount: number;
   expectedImpact: string;
   featured: boolean;
+  mainImage?: string;
   createdAt: string;
   updatedAt: string;
   organization?: Organization;

@@ -207,6 +207,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: 24,
@@ -248,6 +249,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     padding: 24,
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   emptyIconContainer: {
     marginBottom: 20,

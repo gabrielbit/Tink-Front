@@ -7,7 +7,8 @@ const palette = {
   greenSuccess: '#00C851',
   redError: '#ff4444',
   black: '#0B0B0B',
-  white: '#F0F2F3',
+  white: '#FFFFFF',
+  background: '#F7F7F7',
   lightGrey: '#F8F8F8',
   grey: '#ECECEC',
   darkGrey: '#8A8A8A',
@@ -15,7 +16,8 @@ const palette = {
 
 const theme = createTheme({
   colors: {
-    mainBackground: palette.white,
+    mainBackground: palette.background,
+    cardBackground: palette.white,
     cardPrimaryBackground: palette.purpleLight,
     buttonPrimaryBackground: palette.purplePrimary,
     textPrimary: palette.black,
@@ -54,6 +56,13 @@ const theme = createTheme({
       fontSize: 16,
       fontWeight: '600',
     },
+  },
+  borderRadii: {
+    s: 4,
+    m: 8,
+    l: 12,
+    xl: 20,
+    round: 100,
   },
 });
 

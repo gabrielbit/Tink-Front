@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Project } from '../services/api';
@@ -123,9 +123,16 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.mainBackground }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.white }]}>
+      {/* Imagen principal */}
+      <View style={styles.imageContainer}>
+        <Image 
+          source={project.mainImage ? { uri: project.mainImage } : { uri: 'https://placehold.co/600x400/purple/white?text=Proyecto' }}
+          style={styles.headerImage}
+          resizeMode="cover"
+        />
+        
         <TouchableOpacity 
-          style={[styles.backButton, { backgroundColor: theme.colors.purpleLight }]}
+          style={[styles.backButton, { backgroundColor: theme.colors.white }]}
           onPress={handleGoBack}
         >
           <Text style={{ color: theme.colors.purplePrimary }}>← Volver</Text>
@@ -136,9 +143,15 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
             <Text style={[styles.featuredText, { color: theme.colors.purplePrimary }]}>Destacado</Text>
           </View>
         )}
-        
+      </View>
+      
+      <View style={[styles.header, { backgroundColor: theme.colors.white }]}>
         <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>
           {project.title}
+        </Text>
+        
+        <Text style={[styles.location, { color: theme.colors.textSecondary }]}>
+          {project.city}, {project.country}
         </Text>
       </View>
       
@@ -149,14 +162,10 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
         
         <View style={styles.infoContainer}>
           {renderInfoRow('Descripción', project.description)}
-          {renderInfoRow('País', project.country)}
-          {renderInfoRow('Ciudad', project.city)}
           {renderInfoRow('Fecha de inicio', formatDate(project.startDate))}
           {renderInfoRow('Fecha de finalización', formatDate(project.endDate))}
           {renderInfoRow('Monto máximo', `$${project.maxAmount}`)}
           {renderInfoRow('Impacto esperado', project.expectedImpact)}
-          {renderInfoRow('Fecha de creación', formatDate(project.createdAt))}
-          {renderInfoRow('Última actualización', formatDate(project.updatedAt))}
         </View>
       </View>
       
@@ -166,12 +175,26 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
             Organización
           </Text>
           
-          <View style={styles.infoContainer}>
-            {renderInfoRow('Nombre', project.organization.name)}
-            {renderInfoRow('Descripción', project.organization.description)}
-            {renderInfoRow('Responsable', project.organization.responsibleName)}
-            {renderInfoRow('Email', project.organization.responsibleEmail)}
-            {renderInfoRow('Teléfono', project.organization.responsiblePhone)}
+          <View style={styles.organizationCard}>
+            {project.organization.mainImage && (
+              <Image 
+                source={{ uri: project.organization.mainImage }}
+                style={styles.organizationImage}
+                resizeMode="cover"
+              />
+            )}
+            
+            <View style={styles.organizationInfo}>
+              <Text style={[styles.organizationName, { color: theme.colors.purplePrimary }]}>
+                {project.organization.name}
+              </Text>
+              <Text style={[styles.organizationDesc, { color: theme.colors.textPrimary }]} numberOfLines={2}>
+                {project.organization.description}
+              </Text>
+              <Text style={[styles.organizationContact, { color: theme.colors.textSecondary }]}>
+                Contacto: {project.organization.responsibleName}
+              </Text>
+            </View>
           </View>
         </View>
       )}
@@ -212,11 +235,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  imageContainer: {
+    width: '100%',
+    height: 220,
+    position: 'relative',
+  },
+  headerImage: {
+    width: '100%',
+    height: '100%',
+  },
   header: {
     padding: 20,
     marginBottom: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     margin: 16,
+    marginTop: -30,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -230,8 +263,13 @@ const styles = StyleSheet.create({
     left: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 4,
+    borderRadius: 20,
     zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
   },
   featuredBadge: {
     position: 'absolute',
@@ -239,7 +277,7 @@ const styles = StyleSheet.create({
     right: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 4,
+    borderRadius: 20,
   },
   featuredText: {
     fontSize: 12,
@@ -248,18 +286,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 50,
-    marginBottom: 10,
+    marginBottom: 8,
+  },
+  location: {
+    fontSize: 16,
+    opacity: 0.8,
   },
   section: {
     margin: 16,
     marginTop: 0,
     padding: 20,
-    borderRadius: 8,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -282,6 +322,34 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 16,
   },
+  organizationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    padding: 12,
+  },
+  organizationImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 12,
+  },
+  organizationInfo: {
+    flex: 1,
+  },
+  organizationName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  organizationDesc: {
+    fontSize: 14,
+    marginBottom: 6,
+  },
+  organizationContact: {
+    fontSize: 12,
+  },
   categoriesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -301,7 +369,7 @@ const styles = StyleSheet.create({
     margin: 16,
     marginTop: 8,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     marginBottom: 40,
   },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Image } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Organization } from '../services/api';
@@ -29,87 +29,105 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
   };
 
   const handleViewDetails = () => {
-    // Generar slug si no existe
-    const slug = organization.slug || generateSlug(organization.name);
-    
     // Navegar a la organización con ID y slug
     navigation.navigate('ONGs', { 
       ongId: organization.id, 
-      slug
+      slug: organization.slug || generateSlug(organization.name)
     });
   };
+
+  // Placeholder para imagen si no hay una disponible
+  const placeholderImage = 'https://placehold.co/600x400/purple/white?text=ONG';
+  
+  // Usar mainImage si está disponible, de lo contrario usar placeholder
+  const imageSource = organization.mainImage 
+    ? { uri: organization.mainImage } 
+    : { uri: placeholderImage };
 
   return (
     <TouchableOpacity 
       style={[styles.container, { backgroundColor: theme.colors.white }]}
       onPress={handleViewDetails}
     >
-      <Text style={[styles.name, { color: theme.colors.purplePrimary }]}>{organization.name}</Text>
-      <Text style={[styles.description, { color: theme.colors.textPrimary }]}>{organization.description}</Text>
-      
-      <View style={styles.contactInfo}>
-        <Text style={[styles.contactTitle, { color: theme.colors.textPrimary }]}>Responsable:</Text>
-        <Text style={[styles.contactText, { color: theme.colors.textSecondary }]}>{organization.responsibleName}</Text>
+      <View style={styles.imageContainer}>
+        <Image 
+          source={imageSource} 
+          style={styles.image} 
+          resizeMode="cover"
+        />
         
-        <Text style={[styles.contactTitle, { color: theme.colors.textPrimary }]}>Email:</Text>
-        <Text 
-          style={[styles.contactText, styles.link, { color: theme.colors.purplePrimary }]}
-          onPress={(e) => {
-            e.stopPropagation();
-            Linking.openURL(`mailto:${organization.responsibleEmail}`);
-          }}
-        >
-          {organization.responsibleEmail}
-        </Text>
-        
-        <Text style={[styles.contactTitle, { color: theme.colors.textPrimary }]}>Teléfono:</Text>
-        <Text 
-          style={[styles.contactText, styles.link, { color: theme.colors.purplePrimary }]}
-          onPress={(e) => {
-            e.stopPropagation();
-            Linking.openURL(`tel:${organization.responsiblePhone}`);
-          }}
-        >
-          {organization.responsiblePhone}
-        </Text>
+        {/* Insignia de ubicación */}
+        <View style={[styles.badge, { backgroundColor: theme.colors.white }]}>
+          <Text style={[styles.badgeText, { color: theme.colors.textPrimary }]}>
+            {organization.country || 'ONG'}
+          </Text>
+        </View>
       </View>
       
-      <View style={styles.socialLinks}>
-        {organization.websiteUrl && (
-          <TouchableOpacity 
-            style={[styles.socialButton, { backgroundColor: theme.colors.purplePrimary }]}
-            onPress={(e) => {
-              e.stopPropagation();
-              handleOpenLink(organization.websiteUrl || '');
-            }}
-          >
-            <Text style={[styles.socialButtonText, { color: theme.colors.white }]}>Sitio Web</Text>
-          </TouchableOpacity>
-        )}
+      <View style={styles.contentContainer}>
+        <Text style={[styles.name, { color: theme.colors.purplePrimary }]}>
+          {organization.name}
+        </Text>
         
-        {organization.facebookUrl && (
-          <TouchableOpacity 
-            style={[styles.socialButton, { backgroundColor: '#3b5998' }]}
-            onPress={(e) => {
-              e.stopPropagation();
-              handleOpenLink(organization.facebookUrl || '');
-            }}
-          >
-            <Text style={[styles.socialButtonText, { color: theme.colors.white }]}>Facebook</Text>
-          </TouchableOpacity>
-        )}
+        <Text 
+          style={[styles.description, { color: theme.colors.textPrimary }]}
+          numberOfLines={2}
+        >
+          {organization.description}
+        </Text>
         
-        {organization.instagramUrl && (
+        <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
+          Dirigida por {organization.responsibleName}
+        </Text>
+        
+        <View style={styles.footer}>
+          <View style={styles.socialLinks}>
+            {organization.websiteUrl && (
+              <TouchableOpacity 
+                style={[styles.socialButton, { backgroundColor: theme.colors.purpleLight }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleOpenLink(organization.websiteUrl || '');
+                }}
+              >
+                <Text style={[styles.socialButtonText, { color: theme.colors.purplePrimary }]}>Web</Text>
+              </TouchableOpacity>
+            )}
+            
+            {organization.facebookUrl && (
+              <TouchableOpacity 
+                style={[styles.socialButton, { backgroundColor: theme.colors.purpleLight }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleOpenLink(organization.facebookUrl || '');
+                }}
+              >
+                <Text style={[styles.socialButtonText, { color: theme.colors.purplePrimary }]}>FB</Text>
+              </TouchableOpacity>
+            )}
+            
+            {organization.instagramUrl && (
+              <TouchableOpacity 
+                style={[styles.socialButton, { backgroundColor: theme.colors.purpleLight }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleOpenLink(organization.instagramUrl || '');
+                }}
+              >
+                <Text style={[styles.socialButtonText, { color: theme.colors.purplePrimary }]}>IG</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
           <TouchableOpacity 
-            style={[styles.socialButton, { backgroundColor: '#C13584' }]}
-            onPress={(e) => {
-              e.stopPropagation();
-              handleOpenLink(organization.instagramUrl || '');
-            }}
+            style={[styles.detailsButton, { backgroundColor: theme.colors.purplePrimary }]}
+            onPress={handleViewDetails}
           >
-            <Text style={[styles.socialButtonText, { color: theme.colors.white }]}>Instagram</Text>
+            <Text style={[styles.detailsButtonText, { color: theme.colors.white }]}>
+              Ver
+            </Text>
           </TouchableOpacity>
-        )}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -117,14 +135,43 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    overflow: 'hidden',
+  },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 180,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  badge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  contentContainer: {
+    padding: 16,
   },
   name: {
     fontSize: 18,
@@ -133,37 +180,39 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: 10,
+    lineHeight: 20,
   },
-  contactInfo: {
-    marginBottom: 16,
+  infoText: {
+    fontSize: 13,
+    marginBottom: 12,
   },
-  contactTitle: {
-    fontWeight: '600',
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  contactText: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  link: {
-    textDecorationLine: 'underline',
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
   },
   socialLinks: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 8,
+    gap: 6,
   },
   socialButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginRight: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 20,
   },
   socialButtonText: {
     fontSize: 12,
+    fontWeight: '600',
+  },
+  detailsButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  detailsButtonText: {
+    fontSize: 13,
     fontWeight: '600',
   }
 }); 
