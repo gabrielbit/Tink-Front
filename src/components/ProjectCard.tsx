@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Project } from '../services/api';
@@ -15,6 +15,7 @@ interface ProjectCardProps {
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails }) => {
   const theme = useTheme<Theme>();
   const navigation = useNavigation<NativeStackNavigationProp<ProjectsStackParamList>>();
+  const isWeb = Platform.OS === 'web';
 
   const formatDate = (dateString: string) => {
     try {
@@ -68,7 +69,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
 
   return (
     <TouchableOpacity 
-      style={[styles.container, { backgroundColor: theme.colors.white }]}
+      style={[
+        styles.container, 
+        { backgroundColor: theme.colors.white },
+        isWeb && styles.webContainer
+      ]}
       onPress={handleViewDetails}
     >
       <View style={styles.imageContainer}>
@@ -131,7 +136,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
                     { 
                       backgroundColor: theme.colors.white,
                       borderColor: categoryColor,
-                      borderWidth: 1
+                      borderWidth: 2
                     }
                   ]}
                 >
@@ -179,6 +184,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     overflow: 'hidden',
+    flex: 1,
+  },
+  webContainer: {
+    margin: 8,
+    maxWidth: '100%',
+    flexBasis: 'auto',
   },
   imageContainer: {
     position: 'relative',
