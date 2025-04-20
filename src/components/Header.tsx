@@ -13,18 +13,18 @@ export const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
   const { user } = useAuth();
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.purplePrimary }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.white }]}>
       {/* Menú */}
       <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
         <View style={styles.menuIcon}>
-          <View style={[styles.menuLine, { backgroundColor: theme.colors.white }]} />
-          <View style={[styles.menuLine, { backgroundColor: theme.colors.white }]} />
-          <View style={[styles.menuLine, { backgroundColor: theme.colors.white }]} />
+          <View style={[styles.menuLine, { backgroundColor: theme.colors.primary }]} />
+          <View style={[styles.menuLine, { backgroundColor: theme.colors.primary }]} />
+          <View style={[styles.menuLine, { backgroundColor: theme.colors.primary }]} />
         </View>
       </TouchableOpacity>
 
       {/* Logo */}
-      <Text style={[styles.title, { color: theme.colors.white }]}>Tink</Text>
+      <Text style={[styles.title, { color: theme.colors.primary }]}>Tink</Text>
 
       {/* Perfil */}
       <View style={styles.profileContainer}>
@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
             style={styles.profilePic} 
           />
         ) : (
-          <View style={[styles.profilePlaceholder, { backgroundColor: theme.colors.purpleLight }]}>
+          <View style={[styles.profilePlaceholder, { backgroundColor: theme.colors.primaryLight }]}>
             <Text style={[styles.profileInitial, { color: theme.colors.white }]}>
               {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </Text>
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 2,
   },
   menuButton: {

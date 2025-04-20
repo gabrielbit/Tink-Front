@@ -51,12 +51,20 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
   };
 
   // Placeholder para imagen si no hay una disponible
-  const placeholderImage = 'https://placehold.co/600x400/purple/white?text=Proyecto';
+  const fallbackImage = { uri: 'https://as1.ftcdn.net/v2/jpg/13/26/83/50/1000_F_1326835055_xWwsKmGQesgjMyKJeczSBFmWWqPhPaXF.jpg' };
   
-  // Usar mainImage si está disponible, de lo contrario usar placeholder
-  const imageSource = project.mainImage 
-    ? { uri: project.mainImage } 
-    : { uri: placeholderImage };
+  // Obtener la URL de la imagen del proyecto
+  let imageUrl = fallbackImage.uri;
+  
+  // Tener en cuenta la estructura vista en la captura
+  if (project.images && project.images.length > 0) {
+    const mainImage = project.images.find(img => img.is_main === true);
+    if (mainImage && mainImage.path) {
+      imageUrl = mainImage.path;
+    } else if (project.images[0].path) {
+      imageUrl = project.images[0].path;
+    }
+  }
 
   return (
     <TouchableOpacity 
@@ -65,14 +73,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
     >
       <View style={styles.imageContainer}>
         <Image 
-          source={imageSource} 
+          source={{ uri: imageUrl }} 
           style={styles.image} 
           resizeMode="cover"
         />
         
         {project.featured && (
-          <View style={[styles.featuredBadge, { backgroundColor: theme.colors.purpleLight }]}>
-            <Text style={[styles.badgeText, { color: theme.colors.purplePrimary }]}>Destacado</Text>
+          <View style={[styles.featuredBadge, { backgroundColor: theme.colors.primaryLight }]}>
+            <Text style={[styles.badgeText, { color: theme.colors.primary }]}>Destacado</Text>
           </View>
         )}
         
@@ -84,7 +92,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
       </View>
       
       <View style={styles.contentContainer}>
-        <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>{project.title}</Text>
+        <Text style={[styles.title, { color: theme.colors.primary }]}>{project.title}</Text>
         
         <Text 
           style={[styles.description, { color: theme.colors.textPrimary }]}
@@ -103,7 +111,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
           </Text>
           
           {project.organization && (
-            <Text style={[styles.organizationText, { color: theme.colors.purplePrimary }]}>
+            <Text style={[styles.organizationText, { color: theme.colors.primary }]}>
               {project.organization.name}
             </Text>
           )}
@@ -111,16 +119,28 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
         
         {project.categories && project.categories.length > 0 && (
           <View style={styles.categoriesContainer}>
-            {project.categories.map(category => (
-              <View 
-                key={category.id} 
-                style={[styles.categoryTag, { backgroundColor: theme.colors.purpleLight }]}
-              >
-                <Text style={[styles.categoryText, { color: theme.colors.purplePrimary }]}>
-                  {category.name}
-                </Text>
-              </View>
-            ))}
+            {project.categories.map(category => {
+              // Usar el color de la categoría desde la API o un color por defecto
+              const categoryColor = category.color || theme.colors.primary;
+              
+              return (
+                <View 
+                  key={category.id} 
+                  style={[
+                    styles.categoryTag, 
+                    { 
+                      backgroundColor: theme.colors.white,
+                      borderColor: categoryColor,
+                      borderWidth: 1
+                    }
+                  ]}
+                >
+                  <Text style={[styles.categoryText, { color: categoryColor }]}>
+                    {category.name}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         )}
         
@@ -130,15 +150,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
               style={[
                 styles.progressFill, 
                 { 
-                  backgroundColor: theme.colors.purplePrimary,
-                  width: `${Math.min(Math.random() * 100, 100)}%`  // Solo para demostración
+                  backgroundColor: theme.colors.primary,
+                  width: `${Math.min(Math.random() * 100, 100)}%`
                 }
               ]} 
             />
           </View>
           
           <TouchableOpacity 
-            style={[styles.detailsButton, { backgroundColor: theme.colors.purplePrimary }]}
+            style={[styles.detailsButton, { backgroundColor: theme.colors.primary }]}
             onPress={handleViewDetails}
           >
             <Text style={[styles.buttonText, { color: theme.colors.white }]}>Ver</Text>

@@ -37,12 +37,22 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
   };
 
   // Placeholder para imagen si no hay una disponible
-  const placeholderImage = 'https://placehold.co/600x400/purple/white?text=ONG';
+  const fallbackImage = { uri: 'https://as1.ftcdn.net/v2/jpg/13/26/83/50/1000_F_1326835055_xWwsKmGQesgjMyKJeczSBFmWWqPhPaXF.jpg' };
   
-  // Usar mainImage si está disponible, de lo contrario usar placeholder
-  const imageSource = organization.mainImage 
-    ? { uri: organization.mainImage } 
-    : { uri: placeholderImage };
+  // Obtener la URL de la imagen de la organización
+  let imageUrl = fallbackImage.uri;
+  
+  // Tener en cuenta la estructura vista en la captura
+  if (organization.images && organization.images.length > 0) {
+    const mainImage = organization.images.find(img => img.is_main === true);
+    if (mainImage && mainImage.path) {
+      imageUrl = mainImage.path;
+    } else if (organization.images[0].path) {
+      imageUrl = organization.images[0].path;
+    }
+  } else if (organization.mainImage) {
+    imageUrl = organization.mainImage;
+  }
 
   return (
     <TouchableOpacity 
@@ -51,7 +61,7 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
     >
       <View style={styles.imageContainer}>
         <Image 
-          source={imageSource} 
+          source={{ uri: imageUrl }} 
           style={styles.image} 
           resizeMode="cover"
         />
@@ -65,7 +75,7 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
       </View>
       
       <View style={styles.contentContainer}>
-        <Text style={[styles.name, { color: theme.colors.purplePrimary }]}>
+        <Text style={[styles.name, { color: theme.colors.primary }]}>
           {organization.name}
         </Text>
         
@@ -84,43 +94,43 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
           <View style={styles.socialLinks}>
             {organization.websiteUrl && (
               <TouchableOpacity 
-                style={[styles.socialButton, { backgroundColor: theme.colors.purpleLight }]}
+                style={[styles.socialButton, { backgroundColor: theme.colors.primaryLight }]}
                 onPress={(e) => {
                   e.stopPropagation();
                   handleOpenLink(organization.websiteUrl || '');
                 }}
               >
-                <Text style={[styles.socialButtonText, { color: theme.colors.purplePrimary }]}>Web</Text>
+                <Text style={[styles.socialButtonText, { color: theme.colors.primary }]}>Web</Text>
               </TouchableOpacity>
             )}
             
             {organization.facebookUrl && (
               <TouchableOpacity 
-                style={[styles.socialButton, { backgroundColor: theme.colors.purpleLight }]}
+                style={[styles.socialButton, { backgroundColor: theme.colors.primaryLight }]}
                 onPress={(e) => {
                   e.stopPropagation();
                   handleOpenLink(organization.facebookUrl || '');
                 }}
               >
-                <Text style={[styles.socialButtonText, { color: theme.colors.purplePrimary }]}>FB</Text>
+                <Text style={[styles.socialButtonText, { color: theme.colors.primary }]}>FB</Text>
               </TouchableOpacity>
             )}
             
             {organization.instagramUrl && (
               <TouchableOpacity 
-                style={[styles.socialButton, { backgroundColor: theme.colors.purpleLight }]}
+                style={[styles.socialButton, { backgroundColor: theme.colors.primaryLight }]}
                 onPress={(e) => {
                   e.stopPropagation();
                   handleOpenLink(organization.instagramUrl || '');
                 }}
               >
-                <Text style={[styles.socialButtonText, { color: theme.colors.purplePrimary }]}>IG</Text>
+                <Text style={[styles.socialButtonText, { color: theme.colors.primary }]}>IG</Text>
               </TouchableOpacity>
             )}
           </View>
           
           <TouchableOpacity 
-            style={[styles.detailsButton, { backgroundColor: theme.colors.purplePrimary }]}
+            style={[styles.detailsButton, { backgroundColor: theme.colors.primary }]}
             onPress={handleViewDetails}
           >
             <Text style={[styles.detailsButtonText, { color: theme.colors.white }]}>

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, TouchableOpacity, Image, Linking } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
-import { Project } from '../services/api';
+import { Project, ProjectImage } from '../services/api';
 import { apiClient } from '../services/api';
 import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ProjectsStackParamList } from '../navigation/ProjectsStackNavigator';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+
+// Imagen de ejemplo para proyectos que no tienen imagen
+const fallbackImage = { uri: 'https://as1.ftcdn.net/v2/jpg/13/26/83/50/1000_F_1326835055_xWwsKmGQesgjMyKJeczSBFmWWqPhPaXF.jpg' };
 
 type ProjectDetailScreenRouteProp = RouteProp<ProjectsStackParamList, 'ProjectDetail'>;
 type ProjectDetailScreenNavigationProp = NativeStackNavigationProp<ProjectsStackParamList>;
@@ -19,12 +22,17 @@ type Props = {
 };
 
 export const ProjectDetailScreen = ({ route, navigation }: Props) => {
-  const { projectId, slug } = route.params;
+  const { projectId } = route.params;
   const theme = useTheme<Theme>();
   const { logout } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Valores ficticios para demostración
+  const raisedAmount = 24205;
+  const goalAmount = 250000;
+  const progressPercentage = Math.min((raisedAmount / goalAmount) * 100, 100);
 
   useEffect(() => {
     const fetchProjectDetail = async () => {
@@ -50,7 +58,7 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
         )) {
           Alert.alert(
             'Sesión expirada',
-            'Tu sesión ha expirado o no tienes permisos para acceder a esta información. Por favor, inicia sesión nuevamente.',
+            'Tu sesión ha expirada o no tienes permisos para acceder a esta información. Por favor, inicia sesión nuevamente.',
             [
               { 
                 text: 'OK', 
@@ -82,23 +90,42 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
     }
   };
 
-  const renderInfoRow = (label: string, value: string | undefined | null) => (
-    <View style={styles.infoRow}>
-      <Text style={[styles.infoLabel, { color: theme.colors.textPrimary }]}>{label}:</Text>
-      <Text style={[styles.infoValue, { color: theme.colors.textSecondary }]}>
-        {value || 'No disponible'}
-      </Text>
-    </View>
-  );
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
 
   const handleGoBack = () => {
+    // Navegar explícitamente a la lista de proyectos en lugar de usar goBack()
     navigation.navigate('ProjectsList');
+  };
+  
+  const handleShare = () => {
+    // Implementación futura para compartir
+    console.log('Compartiendo proyecto:', project?.title);
+    Alert.alert('Compartir', 'Función de compartir será implementada pronto');
+  };
+  
+  const handleDonate = () => {
+    // Implementación futura para donar
+    console.log('Donando al proyecto:', project?.title);
+    Alert.alert('Donar', 'Función de donar será implementada pronto');
+  };
+  
+  const openWebsite = (url?: string) => {
+    if (url) {
+      Linking.openURL(url);
+    }
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.purplePrimary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
           Cargando detalles del proyecto...
         </Text>
@@ -121,112 +148,183 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
     );
   }
 
+  // Obtener la URL de la imagen del proyecto
+  let imageUrl = fallbackImage.uri;
+  
+  // Tener en cuenta la estructura vista en la captura
+  if (project.images && project.images.length > 0) {
+    const mainImage = project.images.find(img => img.is_main === true);
+    if (mainImage && mainImage.path) {
+      imageUrl = mainImage.path;
+    } else if (project.images[0].path) {
+      imageUrl = project.images[0].path;
+    }
+  }
+
+  // Obtener la URL de la imagen de la organización
+  let orgImageUrl = '';
+  if (project.organization) {
+    if (project.organization.images && project.organization.images.length > 0) {
+      const orgMainImage = project.organization.images.find(img => img.is_main === true);
+      if (orgMainImage && orgMainImage.path) {
+        orgImageUrl = orgMainImage.path;
+      } else if (project.organization.images[0].path) {
+        orgImageUrl = project.organization.images[0].path;
+      }
+    } else if (project.organization.mainImage) {
+      orgImageUrl = project.organization.mainImage;
+    }
+  }
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.mainBackground }]}>
       {/* Imagen principal */}
-      <View style={styles.imageContainer}>
-        <Image 
-          source={project.mainImage ? { uri: project.mainImage } : { uri: 'https://placehold.co/600x400/purple/white?text=Proyecto' }}
-          style={styles.headerImage}
-          resizeMode="cover"
-        />
-        
-        <TouchableOpacity 
-          style={[styles.backButton, { backgroundColor: theme.colors.white }]}
-          onPress={handleGoBack}
-        >
-          <Text style={{ color: theme.colors.purplePrimary }}>← Volver</Text>
-        </TouchableOpacity>
-        
-        {project.featured && (
-          <View style={[styles.featuredBadge, { backgroundColor: theme.colors.purpleLight }]}>
-            <Text style={[styles.featuredText, { color: theme.colors.purplePrimary }]}>Destacado</Text>
-          </View>
-        )}
-      </View>
+      <Image 
+        source={{ uri: imageUrl }}
+        style={styles.headerImage}
+        resizeMode="cover"
+      />
       
-      <View style={[styles.header, { backgroundColor: theme.colors.white }]}>
-        <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>
-          {project.title}
-        </Text>
+      {/* Back Button */}
+      <TouchableOpacity 
+        style={[styles.backButton, { backgroundColor: theme.colors.white }]}
+        onPress={handleGoBack}
+      >
+        <Text style={{ color: theme.colors.primary }}>← Volver</Text>
+      </TouchableOpacity>
+      
+      {/* Tarjeta principal de información */}
+      <View style={styles.mainInfoContainer}>
+        <View style={styles.logoAndTitleContainer}>
+          {orgImageUrl ? (
+            <Image 
+              source={{ uri: orgImageUrl }}
+              style={styles.organizationLogo}
+            />
+          ) : null}
+          
+          <View style={styles.titleContainer}>
+            <Text style={[styles.organizationName, { color: theme.colors.primary }]}>
+              {project.organization?.name || 'Organización'}
+            </Text>
+            <Text style={[styles.projectTitle, { color: theme.colors.textPrimary }]}>
+              {project.title}
+            </Text>
+          </View>
+        </View>
         
         <Text style={[styles.location, { color: theme.colors.textSecondary }]}>
           {project.city}, {project.country}
         </Text>
-      </View>
-      
-      <View style={[styles.section, { backgroundColor: theme.colors.white }]}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.purplePrimary }]}>
-          Información General
-        </Text>
         
-        <View style={styles.infoContainer}>
-          {renderInfoRow('Descripción', project.description)}
-          {renderInfoRow('Fecha de inicio', formatDate(project.startDate))}
-          {renderInfoRow('Fecha de finalización', formatDate(project.endDate))}
-          {renderInfoRow('Monto máximo', `$${project.maxAmount}`)}
-          {renderInfoRow('Impacto esperado', project.expectedImpact)}
-        </View>
+        <Text style={[styles.description, { color: theme.colors.textPrimary }]}>
+          {project.description}
+        </Text>
       </View>
       
-      {project.organization && (
-        <View style={[styles.section, { backgroundColor: theme.colors.white }]}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.purplePrimary }]}>
-            Organización
-          </Text>
-          
-          <View style={styles.organizationCard}>
-            {project.organization.mainImage && (
-              <Image 
-                source={{ uri: project.organization.mainImage }}
-                style={styles.organizationImage}
-                resizeMode="cover"
-              />
-            )}
-            
-            <View style={styles.organizationInfo}>
-              <Text style={[styles.organizationName, { color: theme.colors.purplePrimary }]}>
-                {project.organization.name}
-              </Text>
-              <Text style={[styles.organizationDesc, { color: theme.colors.textPrimary }]} numberOfLines={2}>
-                {project.organization.description}
-              </Text>
-              <Text style={[styles.organizationContact, { color: theme.colors.textSecondary }]}>
-                Contacto: {project.organization.responsibleName}
-              </Text>
-            </View>
+      {/* Tarjeta de financiamiento */}
+      <View style={styles.fundingCard}>
+        <View style={styles.fundingRow}>
+          <View>
+            <Text style={[styles.amountLabel, { color: theme.colors.textSecondary }]}>Recaudado</Text>
+            <Text style={[styles.amount, { color: theme.colors.textPrimary }]}>{formatCurrency(raisedAmount)}</Text>
+          </View>
+          <View style={styles.goalContainer}>
+            <Text style={[styles.amountLabel, { color: theme.colors.textSecondary, textAlign: 'right' }]}>Meta</Text>
+            <Text style={[styles.amount, { color: theme.colors.textPrimary }]}>{formatCurrency(goalAmount)}</Text>
           </View>
         </View>
-      )}
+        
+        {/* Barra de progreso */}
+        <View style={styles.progressBarContainer}>
+          <View style={styles.progressBar}>
+            <View 
+              style={[styles.progressFill, { 
+                width: `${progressPercentage}%`,
+                backgroundColor: theme.colors.primary
+              }]} 
+            />
+          </View>
+        </View>
+        
+        {/* Botones de acción */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={[styles.shareButton, { borderColor: theme.colors.primary }]}
+            onPress={handleShare}
+          >
+            <Text style={[styles.shareButtonText, { color: theme.colors.primary }]}>Compartir</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.donateButton, { backgroundColor: theme.colors.primary }]}
+            onPress={handleDonate}
+          >
+            <Text style={[styles.donateButtonText, { color: theme.colors.white }]}>Donar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       
+      {/* Detalles adicionales */}
+      <View style={styles.detailsCard}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+          Detalles del Proyecto
+        </Text>
+        
+        <View style={styles.detailRow}>
+          <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Fecha de inicio:</Text>
+          <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>{formatDate(project.startDate)}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Fecha de finalización:</Text>
+          <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>{formatDate(project.endDate)}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Monto máximo:</Text>
+          <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>${project.maxAmount}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Impacto esperado:</Text>
+          <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>{project.expectedImpact}</Text>
+        </View>
+      </View>
+      
+      {/* Categorías */}
       {project.categories && project.categories.length > 0 && (
-        <View style={[styles.section, { backgroundColor: theme.colors.white }]}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.purplePrimary }]}>
+        <View style={styles.categoriesCard}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.primary }]}>
             Categorías
           </Text>
           
           <View style={styles.categoriesContainer}>
-            {project.categories.map(category => (
-              <View 
-                key={category.id} 
-                style={[styles.categoryTag, { backgroundColor: theme.colors.purpleLight }]}
-              >
-                <Text style={[styles.categoryText, { color: theme.colors.purplePrimary }]}>
-                  {category.name}
-                </Text>
-              </View>
-            ))}
+            {project.categories.map(category => {
+              // Usar el color de la categoría desde la API o un color por defecto
+              const categoryColor = category.color || theme.colors.primary;
+              
+              return (
+                <View 
+                  key={category.id} 
+                  style={[
+                    styles.categoryTag, 
+                    { 
+                      backgroundColor: theme.colors.white,
+                      borderColor: categoryColor,
+                      borderWidth:  1
+                    }
+                  ]}
+                >
+                  <Text style={[styles.categoryText, { color: categoryColor }]}>
+                    {category.name}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       )}
-      
-      <TouchableOpacity 
-        style={[styles.contactButton, { backgroundColor: theme.colors.purplePrimary }]}
-      >
-        <Text style={[styles.contactButtonText, { color: theme.colors.white }]}>
-          Contactar para participar
-        </Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -235,27 +333,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  imageContainer: {
-    width: '100%',
-    height: 220,
-    position: 'relative',
-  },
   headerImage: {
     width: '100%',
-    height: '100%',
-  },
-  header: {
-    padding: 20,
-    marginBottom: 16,
-    borderRadius: 12,
-    margin: 16,
-    marginTop: -30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    position: 'relative',
+    height: 280,
   },
   backButton: {
     position: 'absolute',
@@ -271,32 +351,124 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 3,
   },
-  featuredBadge: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  mainInfoContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    margin: 16,
+    marginTop: -40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  featuredText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+  logoAndTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  title: {
-    fontSize: 24,
+  organizationLogo: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  organizationName: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  projectTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   location: {
-    fontSize: 16,
-    opacity: 0.8,
+    fontSize: 14,
+    marginBottom: 12,
   },
-  section: {
-    margin: 16,
-    marginTop: 0,
-    padding: 20,
+  description: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  fundingCard: {
+    backgroundColor: 'white',
     borderRadius: 12,
+    padding: 16,
+    margin: 16,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  fundingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  amountLabel: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  amount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  goalContainer: {
+    alignItems: 'flex-end',
+  },
+  progressBarContainer: {
+    marginVertical: 16,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#EEEEEE',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  shareButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    borderWidth: 1,
+  },
+  shareButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  donateButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  donateButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  detailsCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    margin: 16,
+    marginTop: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -308,47 +480,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
   },
-  infoContainer: {
-    
-  },
-  infoRow: {
+  detailRow: {
     marginBottom: 12,
   },
-  infoLabel: {
+  detailLabel: {
     fontSize: 14,
-    fontWeight: '600',
     marginBottom: 4,
   },
-  infoValue: {
+  detailValue: {
     fontSize: 16,
   },
-  organizationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 8,
-    padding: 12,
-  },
-  organizationImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 12,
-  },
-  organizationInfo: {
-    flex: 1,
-  },
-  organizationName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  organizationDesc: {
-    fontSize: 14,
-    marginBottom: 6,
-  },
-  organizationContact: {
-    fontSize: 12,
+  categoriesCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    margin: 16,
+    marginTop: 8,
+    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   categoriesContainer: {
     flexDirection: 'row',
@@ -364,18 +517,6 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 14,
     fontWeight: '500',
-  },
-  contactButton: {
-    margin: 16,
-    marginTop: 8,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  contactButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,
