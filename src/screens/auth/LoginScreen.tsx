@@ -9,12 +9,24 @@ import { Props } from '../../navigation/types';
 export const LoginScreen = ({ navigation }: Props) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const theme = useTheme<Theme>();
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor, ingresa tu email y contraseña');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      setLoading(true);
+      
+      // Para desarrollo/pruebas: URL configurable según entorno
+      // Puedes cambiar esto a tu URL real de la API
+      const API_URL = 'http://localhost:3000/api/auth/login';
+      
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,18 +35,43 @@ export const LoginScreen = ({ navigation }: Props) => {
       });
 
       const data = await response.json();
+      console.log('Respuesta completa:', JSON.stringify(data));
 
       if (response.ok) {
-        // Usar el hook useAuth para guardar el token y el usuario
-        await login(data.token, data.user);
+        // Los campos cambiaron: accessToken en lugar de token
+        console.log('Token recibido:', data.accessToken);
+        console.log('Refresh token recibido:', data.refreshToken);
+        
+        // Verificamos la estructura de la respuesta
+        if (!data.accessToken || !data.refreshToken) {
+          console.error('No se recibieron los tokens necesarios:', data);
+          Alert.alert('Error', 'No se recibieron los tokens de autenticación necesarios');
+          return;
+        }
+        
+        // Verificamos la estructura del objeto usuario
+        if (!data.user || !data.user.id) {
+          console.error('Invalid user data received:', data.user);
+          Alert.alert('Error', 'Datos de usuario incompletos');
+          return;
+        }
+        
+        // Usar el hook useAuth para guardar los tokens y el usuario
+        await login(data.accessToken, data.refreshToken, data.user);
         
         // No es necesario navegar manualmente, App.tsx se encargará de eso
         // cuando el estado de autenticación cambie
       } else {
+        // Logging para depuración
+        console.error('Error de login:', data);
+        
         Alert.alert('Error', data.message || 'Error al iniciar sesión');
       }
     } catch (error) {
+      console.error('Error en la solicitud de inicio de sesión:', error);
       Alert.alert('Error', 'No se pudo conectar con el servidor');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,24 +79,31 @@ export const LoginScreen = ({ navigation }: Props) => {
     <View style={[styles.container, { backgroundColor: theme.colors.mainBackground }]}>
       <TextInput
         style={[styles.input, { borderColor: theme.colors.purplePrimary }]}
-        placeholder="Email"
+        placeholder="marin.gabriel@gmail.com"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+        editable={!loading}
       />
       <TextInput
         style={[styles.input, { borderColor: theme.colors.purplePrimary }]}
-        placeholder="Contraseña"
+        placeholder="test"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        editable={!loading}
       />
-      <Button title="Iniciar Sesión" onPress={handleLogin} />
+      <Button 
+        title={loading ? "Iniciando sesión..." : "Iniciar Sesión"} 
+        onPress={handleLogin} 
+        disabled={loading}
+      />
       <Button 
         title="Crear Cuenta" 
         variant="secondary" 
         onPress={() => navigation.navigate('Register')} 
+        disabled={loading}
       />
     </View>
   );

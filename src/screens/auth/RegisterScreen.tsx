@@ -4,22 +4,33 @@ import { Button } from '../../components/Button';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../../theme/theme';
 import { Props } from '../../navigation/types';
+import { useAuth } from '../../context/AuthContext';
 
 export const RegisterScreen = ({ navigation }: Props) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const theme = useTheme<Theme>();
+  const { login } = useAuth();
 
   const handleRegister = async () => {
+    if (!name || !email || !password) {
+      Alert.alert('Error', 'Por favor, completa todos los campos');
+      return;
+    }
+    
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      setLoading(true);
+      
+      // 1. Registrar al usuario
+      const registerResponse = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -27,17 +38,56 @@ export const RegisterScreen = ({ navigation }: Props) => {
         body: JSON.stringify({ name, email, password }),
       });
 
-      const data = await response.json();
+      const registerData = await registerResponse.json();
 
-      if (response.ok) {
-        Alert.alert('Éxito', 'Cuenta creada exitosamente', [
-          { text: 'OK', onPress: () => navigation.navigate('Login') }
-        ]);
+      if (!registerResponse.ok) {
+        Alert.alert('Error', registerData.message || 'Error al crear la cuenta');
+        setLoading(false);
+        return;
+      }
+      
+      // 2. Iniciar sesión automáticamente
+      const loginResponse = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const loginData = await loginResponse.json();
+      console.log('Respuesta completa de login:', JSON.stringify(loginData));
+      
+      if (loginResponse.ok) {
+        // Verificar que se recibieron los tokens necesarios
+        if (!loginData.accessToken || !loginData.refreshToken) {
+          console.error('No se recibieron los tokens necesarios:', loginData);
+          Alert.alert(
+            'Cuenta creada', 
+            'Tu cuenta se ha creado exitosamente, pero hubo un problema al iniciar sesión automáticamente. Por favor, inicia sesión manualmente.',
+            [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+          );
+          return;
+        }
+        
+        // 3. Guardar el token y redirigir al home
+        await login(loginData.accessToken, loginData.refreshToken, loginData.user);
+        
+        // No es necesario navegar manualmente, App.tsx se encargará de mostrar
+        // la pantalla Home basado en el estado de autenticación
       } else {
-        Alert.alert('Error', data.message || 'Error al crear la cuenta');
+        // Si falla el inicio de sesión, pero el registro fue exitoso
+        Alert.alert(
+          'Cuenta creada', 
+          'Tu cuenta se ha creado exitosamente, pero hubo un problema al iniciar sesión automáticamente. Por favor, inicia sesión manualmente.',
+          [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        );
       }
     } catch (error) {
+      console.error('Error en el registro:', error);
       Alert.alert('Error', 'No se pudo conectar con el servidor');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,6 +98,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
         placeholder="Nombre"
         value={name}
         onChangeText={setName}
+        editable={!loading}
       />
       <TextInput
         style={[styles.input, { borderColor: theme.colors.purplePrimary }]}
@@ -56,6 +107,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+        editable={!loading}
       />
       <TextInput
         style={[styles.input, { borderColor: theme.colors.purplePrimary }]}
@@ -63,6 +115,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        editable={!loading}
       />
       <TextInput
         style={[styles.input, { borderColor: theme.colors.purplePrimary }]}
@@ -70,12 +123,18 @@ export const RegisterScreen = ({ navigation }: Props) => {
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
+        editable={!loading}
       />
-      <Button title="Registrarse" onPress={handleRegister} />
+      <Button 
+        title={loading ? "Procesando..." : "Registrarse"} 
+        onPress={handleRegister} 
+        disabled={loading}
+      />
       <Button 
         title="Volver a Login" 
         variant="secondary" 
         onPress={() => navigation.navigate('Login')} 
+        disabled={loading}
       />
     </View>
   );
