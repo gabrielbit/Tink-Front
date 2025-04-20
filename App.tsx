@@ -9,6 +9,7 @@ import { ThemeProvider } from '@shopify/restyle';
 import theme from './src/theme/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import linking from './src/navigation/linkingConfiguration';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,7 +41,7 @@ export default function App() {
     <GestureHandlerRootView style={styles.container}>
       <ThemeProvider theme={theme}>
         <AuthProvider>
-          <NavigationContainer>
+          <NavigationContainer linking={linking}>
             <Navigation />
           </NavigationContainer>
         </AuthProvider>

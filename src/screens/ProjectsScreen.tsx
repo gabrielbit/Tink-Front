@@ -136,10 +136,22 @@ export const ProjectsScreen = ({ navigation }: Props) => {
     loadProjects(page, filterParams);
   };
 
-  const handleViewProjectDetails = (projectId: string) => {
-    // Navegar explícitamente a la pantalla de detalles
-    navigation.navigate('ProjectDetail', { projectId });
-    console.log('Navegando a ProjectDetail con ID:', projectId);
+  const handleViewProjectDetails = (project: Project) => {
+    // Navegar a la pantalla de detalles solo con el ID del proyecto
+    // El slug se usará solo para URLs amigables, pero no es necesario para la navegación interna
+    navigation.navigate('ProjectDetail', { 
+      projectId: project.id
+    });
+    console.log('Navegando a ProjectDetail con ID:', project.id);
+  };
+
+  // Función para generar un slug si no existe
+  const generateSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // Remover caracteres especiales
+      .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+      .replace(/--+/g, '-'); // Remover guiones duplicados
   };
 
   const renderHeader = () => (

@@ -8,6 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { useAuth } from '../context/AuthContext';
+import linking from './linkingConfiguration';
 
 const Drawer = createDrawerNavigator();
 
@@ -17,7 +18,7 @@ const CustomDrawerContent = (props: any) => {
 
   const menuItems = [
     { name: 'Inicio', screen: 'Home', icon: '🏠' },
-    { name: 'Proyectos', screen: 'Projects', icon: '📋' },
+    { name: 'Proyectos', screen: 'Projects', params: { screen: 'ProjectsList' }, icon: '📋' },
     { name: 'ONGs', screen: 'ONGs', icon: '🌍' },
   ];
 
@@ -42,7 +43,7 @@ const CustomDrawerContent = (props: any) => {
           <TouchableOpacity
             key={index}
             style={styles.drawerItem}
-            onPress={() => props.navigation.navigate(item.screen)}
+            onPress={() => props.navigation.navigate(item.screen, item.params)}
           >
             <Text style={styles.drawerItemIcon}>{item.icon}</Text>
             <Text style={[styles.drawerItemText, { color: theme.colors.textPrimary }]}>

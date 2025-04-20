@@ -12,8 +12,32 @@ export interface Organization {
   instagramUrl?: string;
   facebookUrl?: string;
   websiteUrl?: string;
+  slug?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  slug?: string;
+  description: string;
+  country: string;
+  city: string;
+  startDate: string;
+  endDate: string;
+  maxAmount: number;
+  expectedImpact: string;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  organization?: Organization;
+  categories?: Category[];
 }
 
 export interface ApiResponse {
@@ -30,6 +54,19 @@ export interface OrganizationParams {
   name?: string;
   responsibleName?: string;
   responsibleEmail?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  limit?: number;
+  page?: number;
+}
+
+export interface ProjectParams {
+  title?: string;
+  country?: string;
+  city?: string;
+  featured?: boolean;
+  categoryId?: string;
+  organizationId?: string;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
   limit?: number;

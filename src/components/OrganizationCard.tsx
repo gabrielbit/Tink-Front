@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Organization } from '../services/api';
+import { useNavigation } from '@react-navigation/native';
 
 interface OrganizationCardProps {
   organization: Organization;
@@ -10,6 +11,7 @@ interface OrganizationCardProps {
 
 export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization }) => {
   const theme = useTheme<Theme>();
+  const navigation = useNavigation<any>();
 
   const handleOpenLink = (url: string) => {
     if (url) {
@@ -17,8 +19,31 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
     }
   };
 
+  // Función para generar un slug si no existe
+  const generateSlug = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // Remover caracteres especiales
+      .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+      .replace(/--+/g, '-'); // Remover guiones duplicados
+  };
+
+  const handleViewDetails = () => {
+    // Generar slug si no existe
+    const slug = organization.slug || generateSlug(organization.name);
+    
+    // Navegar a la organización con ID y slug
+    navigation.navigate('ONGs', { 
+      ongId: organization.id, 
+      slug
+    });
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.white }]}>
+    <TouchableOpacity 
+      style={[styles.container, { backgroundColor: theme.colors.white }]}
+      onPress={handleViewDetails}
+    >
       <Text style={[styles.name, { color: theme.colors.purplePrimary }]}>{organization.name}</Text>
       <Text style={[styles.description, { color: theme.colors.textPrimary }]}>{organization.description}</Text>
       
@@ -29,7 +54,10 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
         <Text style={[styles.contactTitle, { color: theme.colors.textPrimary }]}>Email:</Text>
         <Text 
           style={[styles.contactText, styles.link, { color: theme.colors.purplePrimary }]}
-          onPress={() => Linking.openURL(`mailto:${organization.responsibleEmail}`)}
+          onPress={(e) => {
+            e.stopPropagation();
+            Linking.openURL(`mailto:${organization.responsibleEmail}`);
+          }}
         >
           {organization.responsibleEmail}
         </Text>
@@ -37,7 +65,10 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
         <Text style={[styles.contactTitle, { color: theme.colors.textPrimary }]}>Teléfono:</Text>
         <Text 
           style={[styles.contactText, styles.link, { color: theme.colors.purplePrimary }]}
-          onPress={() => Linking.openURL(`tel:${organization.responsiblePhone}`)}
+          onPress={(e) => {
+            e.stopPropagation();
+            Linking.openURL(`tel:${organization.responsiblePhone}`);
+          }}
         >
           {organization.responsiblePhone}
         </Text>
@@ -47,7 +78,10 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
         {organization.websiteUrl && (
           <TouchableOpacity 
             style={[styles.socialButton, { backgroundColor: theme.colors.purplePrimary }]}
-            onPress={() => handleOpenLink(organization.websiteUrl || '')}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleOpenLink(organization.websiteUrl || '');
+            }}
           >
             <Text style={[styles.socialButtonText, { color: theme.colors.white }]}>Sitio Web</Text>
           </TouchableOpacity>
@@ -56,7 +90,10 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
         {organization.facebookUrl && (
           <TouchableOpacity 
             style={[styles.socialButton, { backgroundColor: '#3b5998' }]}
-            onPress={() => handleOpenLink(organization.facebookUrl || '')}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleOpenLink(organization.facebookUrl || '');
+            }}
           >
             <Text style={[styles.socialButtonText, { color: theme.colors.white }]}>Facebook</Text>
           </TouchableOpacity>
@@ -65,13 +102,16 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
         {organization.instagramUrl && (
           <TouchableOpacity 
             style={[styles.socialButton, { backgroundColor: '#C13584' }]}
-            onPress={() => handleOpenLink(organization.instagramUrl || '')}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleOpenLink(organization.instagramUrl || '');
+            }}
           >
             <Text style={[styles.socialButtonText, { color: theme.colors.white }]}>Instagram</Text>
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

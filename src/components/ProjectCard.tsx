@@ -9,7 +9,7 @@ import { ProjectsStackParamList } from '../navigation/ProjectsStackNavigator';
 
 interface ProjectCardProps {
   project: Project;
-  onViewDetails?: (projectId: string) => void;
+  onViewDetails?: (project: Project) => void;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails }) => {
@@ -26,13 +26,24 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
     }
   };
 
+  // Función para generar un slug si no existe
+  const generateSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // Remover caracteres especiales
+      .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+      .replace(/--+/g, '-'); // Remover guiones duplicados
+  };
+
   const handleViewDetails = () => {
     if (onViewDetails) {
-      onViewDetails(project.id);
+      onViewDetails(project);
     } else {
-      // Intenta navegar directamente (esto podría fallar en navegación anidada)
+      // Simplificar la navegación - usar solo el ID
       try {
-        navigation.navigate('ProjectDetail', { projectId: project.id });
+        navigation.navigate('ProjectDetail', { 
+          projectId: project.id
+        });
       } catch (error) {
         console.error('Error al navegar:', error);
       }

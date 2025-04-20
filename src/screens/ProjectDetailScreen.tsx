@@ -19,7 +19,7 @@ type Props = {
 };
 
 export const ProjectDetailScreen = ({ route, navigation }: Props) => {
-  const { projectId } = route.params;
+  const { projectId, slug } = route.params;
   const theme = useTheme<Theme>();
   const { logout } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
@@ -32,6 +32,7 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
         setLoading(true);
         setError(null);
         
+        // Usar solo el ID del proyecto para la API, ignorando el slug
         const url = `http://localhost:3000/api/projects/${projectId}`;
         console.log('Obteniendo detalles del proyecto:', url);
         const response = await apiClient.fetchWithAuth(url);
@@ -91,7 +92,7 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
   );
 
   const handleGoBack = () => {
-    navigation.goBack();
+    navigation.navigate('ProjectsList');
   };
 
   if (loading) {

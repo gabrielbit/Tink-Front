@@ -6,7 +6,7 @@ import { ProjectDetailScreen } from '../screens/ProjectDetailScreen';
 // Definir una interfaz específica para este navegador
 export type ProjectsStackParamList = {
   ProjectsList: undefined;
-  ProjectDetail: { projectId: string };
+  ProjectDetail: { projectId: string; slug?: string };
 };
 
 const Stack = createNativeStackNavigator<ProjectsStackParamList>();
