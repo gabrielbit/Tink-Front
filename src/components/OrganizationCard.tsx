@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Image, Platform } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Organization } from '../services/api';
@@ -12,6 +12,7 @@ interface OrganizationCardProps {
 export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization }) => {
   const theme = useTheme<Theme>();
   const navigation = useNavigation<any>();
+  const isWeb = Platform.OS === 'web';
 
   const handleOpenLink = (url: string) => {
     if (url) {
@@ -56,7 +57,11 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
 
   return (
     <TouchableOpacity 
-      style={[styles.container, { backgroundColor: theme.colors.white }]}
+      style={[
+        styles.container, 
+        { backgroundColor: theme.colors.white },
+        isWeb && styles.webContainer
+      ]}
       onPress={handleViewDetails}
     >
       <View style={styles.imageContainer}>
@@ -153,6 +158,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     overflow: 'hidden',
+    flex: 1,
+  },
+  webContainer: {
+    margin: 8,
+    maxWidth: '100%',
+    flexBasis: 'auto',
   },
   imageContainer: {
     position: 'relative',

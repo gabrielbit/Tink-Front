@@ -4,12 +4,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { RegisterScreen } from './src/screens/auth/RegisterScreen';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, StatusBar } from 'react-native';
 import { ThemeProvider } from '@shopify/restyle';
 import theme from './src/theme/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import linking from './src/navigation/linkingConfiguration';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,7 +29,7 @@ const Navigation = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.purplePrimary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -39,13 +40,16 @@ const Navigation = () => {
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
-      <ThemeProvider theme={theme}>
-        <AuthProvider>
-          <NavigationContainer linking={linking}>
-            <Navigation />
-          </NavigationContainer>
-        </AuthProvider>
-      </ThemeProvider>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.white} />
+      <SafeAreaProvider>
+        <ThemeProvider theme={theme}>
+          <AuthProvider>
+            <NavigationContainer linking={linking}>
+              <Navigation />
+            </NavigationContainer>
+          </AuthProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

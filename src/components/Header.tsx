@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { useAuth } from '../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface HeaderProps {
   onMenuPress: () => void;
@@ -11,11 +12,27 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
   const theme = useTheme<Theme>();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  
+  // Calcula el paddingTop basado en la plataforma y los insets de safe area
+  const headerPaddingTop = Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight || 0;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.white }]}>
+    <View 
+      style={[
+        styles.container, 
+        { 
+          backgroundColor: theme.colors.white,
+          paddingTop: headerPaddingTop,
+        }
+      ]}
+    >
       {/* Menú */}
-      <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
+      <TouchableOpacity 
+        onPress={onMenuPress} 
+        style={styles.menuButton}
+        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+      >
         <View style={styles.menuIcon}>
           <View style={[styles.menuLine, { backgroundColor: theme.colors.primary }]} />
           <View style={[styles.menuLine, { backgroundColor: theme.colors.primary }]} />
@@ -47,11 +64,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
+    minHeight: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingBottom: 8,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

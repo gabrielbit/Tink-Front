@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, RefreshControl, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, RefreshControl, Image, Alert, Platform, useWindowDimensions } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { fetchOrganizations, Organization, OrganizationParams } from '../services/api';
@@ -22,6 +22,21 @@ export const ONGsScreen = ({ navigation }: Props) => {
   const [totalItems, setTotalItems] = useState(0);
   const [filterParams, setFilterParams] = useState<OrganizationParams>({});
   const pageSize = 10;
+  
+  // Obtener las dimensiones de la pantalla para diseño responsive
+  const { width } = useWindowDimensions();
+  const isWeb = Platform.OS === 'web';
+  
+  // Determinar el número de columnas según el ancho de la pantalla
+  const getColumnCount = () => {
+    if (!isWeb) return 1; // Móvil siempre 1 columna
+    
+    if (width > 1400) return 3; // Pantallas muy anchas: 3 columnas
+    if (width > 800) return 2; // Pantallas medianas: 2 columnas
+    return 1; // Pantallas pequeñas: 1 columna
+  };
+  
+  const columnCount = getColumnCount();
 
   const loadOrganizations = async (page: number, params: OrganizationParams = {}) => {
     try {
@@ -91,15 +106,18 @@ export const ONGsScreen = ({ navigation }: Props) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>
-        Organizaciones
-      </Text>
-      
-      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-        {totalItems} {totalItems === 1 ? 'organización encontrada' : 'organizaciones encontradas'}
-      </Text>
-      
-      <OrganizationFilter onFilter={handleFilterChange} />
+      <View style={styles.titleRow}>
+        <OrganizationFilter onFilter={handleFilterChange} />
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>
+            Organizaciones
+          </Text>
+          
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            {totalItems} {totalItems === 1 ? 'organización encontrada' : 'organizaciones encontradas'}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -111,12 +129,12 @@ export const ONGsScreen = ({ navigation }: Props) => {
       <View style={styles.emptyContainer}>
         {/* Icono o ilustración */}
         <View style={styles.emptyIconContainer}>
-          <View style={[styles.emptyIcon, { backgroundColor: theme.colors.purpleLight }]}>
+          <View style={[styles.emptyIcon, { backgroundColor: theme.colors.primaryLight }]}>
             <Text style={styles.emptyIconText}>📋</Text>
           </View>
         </View>
         
-        <Text style={[styles.emptyTitle, { color: theme.colors.purplePrimary }]}>
+        <Text style={[styles.emptyTitle, { color: theme.colors.primary }]}>
           {hasActiveFilters 
             ? 'No se encontraron organizaciones' 
             : 'Aún no hay organizaciones'}
@@ -156,13 +174,41 @@ export const ONGsScreen = ({ navigation }: Props) => {
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.purplePrimary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
           Cargando organizaciones...
         </Text>
       </View>
     );
   }
+
+  // Renderizar el contenido de manera diferente según la plataforma
+  const content = (
+    <FlatList
+      data={organizations}
+      renderItem={({ item }) => <OrganizationCard organization={item} />}
+      key={`column-${columnCount}`}
+      numColumns={columnCount}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={[
+        styles.listContent,
+        organizations.length === 0 && styles.emptyListContent,
+        isWeb && styles.webListContent
+      ]}
+      columnWrapperStyle={columnCount > 1 ? styles.columnWrapper : undefined}
+      ListHeaderComponent={renderHeader}
+      ListEmptyComponent={renderEmpty}
+      ListFooterComponent={organizations.length > 0 ? renderFooter : null}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={[theme.colors.primary]}
+          tintColor={theme.colors.primary}
+        />
+      }
+    />
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.mainBackground }]}>
@@ -176,26 +222,9 @@ export const ONGsScreen = ({ navigation }: Props) => {
           />
         </View>
       ) : (
-        <FlatList
-          data={organizations}
-          renderItem={({ item }) => <OrganizationCard organization={item} />}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.listContent,
-            organizations.length === 0 && styles.emptyListContent
-          ]}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmpty}
-          ListFooterComponent={organizations.length > 0 ? renderFooter : null}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={[theme.colors.purplePrimary]}
-              tintColor={theme.colors.purplePrimary}
-            />
-          }
-        />
+        <View style={[styles.contentWrapper, isWeb && styles.webContentWrapper]}>
+          {content}
+        </View>
       )}
     </View>
   );
@@ -205,9 +234,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  contentWrapper: {
+    flex: 1,
+    width: '100%',
+  },
+  webContentWrapper: {
+    alignItems: 'center',
+  },
+  webListContent: {
+    maxWidth: 1600,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    gap: 16,
+  },
   header: {
     padding: 16,
     backgroundColor: 'transparent',
+    width: '100%',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    marginLeft: 16,
   },
   title: {
     fontSize: 24,
