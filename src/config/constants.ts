@@ -15,7 +15,7 @@ const isProduction = () => {
 
 // URLs de configuración
 const DEVELOPMENT_API_URL = 'http://localhost:3000/api';
-const PRODUCTION_API_URL = 'https://18.116.204.51:3000/api';
+const PRODUCTION_API_URL = 'http://18.116.204.51:3000/api';
 
 // Detectar entorno actual
 const IS_PRODUCTION = isProduction();
