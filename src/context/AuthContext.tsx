@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { buildApiUrl, API_CONFIG } from '../config/constants';
 
 type User = {
   id: string;
@@ -20,8 +21,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// URL base para las solicitudes de autenticación
-const API_BASE_URL = 'http://localhost:3000/api';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -91,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Hacer la solicitud al servidor para refrescar el token
-      const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+      const response = await fetch(buildApiUrl(API_CONFIG.AUTH.REFRESH_TOKEN), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

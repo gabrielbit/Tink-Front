@@ -5,6 +5,7 @@ import { useTheme } from '@shopify/restyle';
 import { Theme } from '../../theme/theme';
 import { Props } from '../../navigation/types';
 import { useAuth } from '../../context/AuthContext';
+import { buildApiUrl, API_CONFIG } from '../../config/constants';
 
 export const RegisterScreen = ({ navigation }: Props) => {
   const [name, setName] = useState('');
@@ -30,7 +31,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
       setLoading(true);
       
       // 1. Registrar al usuario
-      const registerResponse = await fetch('http://localhost:3000/api/auth/register', {
+      const registerResponse = await fetch(buildApiUrl(API_CONFIG.AUTH.REGISTER), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +48,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
       }
       
       // 2. Iniciar sesión automáticamente
-      const loginResponse = await fetch('http://localhost:3000/api/auth/login', {
+      const loginResponse = await fetch(buildApiUrl(API_CONFIG.AUTH.LOGIN), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
