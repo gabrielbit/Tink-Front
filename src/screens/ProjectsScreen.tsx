@@ -11,6 +11,7 @@ import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ProjectsStackParamList } from '../navigation/ProjectsStackNavigator';
+import { buildApiUrl, API_CONFIG } from '../config/constants';
 
 type Props = NativeStackScreenProps<ProjectsStackParamList, 'ProjectsList'>;
 
@@ -60,9 +61,9 @@ export const ProjectsScreen = ({ navigation }: Props) => {
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.page) queryParams.append('page', params.page.toString());
       
-      // Crear la URL completa
+      // Crear la URL completa usando la configuración centralizada
       const queryString = queryParams.toString();
-      const url = `http://localhost:3000/api/projects${queryString ? `?${queryString}` : ''}`;
+      const url = `${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}${queryString ? `?${queryString}` : ''}`;
       
       // Usar el cliente API con manejo de refresh token
       const response = await apiClient.fetchWithAuth(url);

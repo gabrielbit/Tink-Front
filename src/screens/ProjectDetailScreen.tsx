@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ProjectsStackParamList } from '../navigation/ProjectsStackNavigator';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl, API_CONFIG } from '../config/constants';
 
 // Imagen de ejemplo para proyectos que no tienen imagen
 const fallbackImage = { uri: 'https://as1.ftcdn.net/v2/jpg/13/26/83/50/1000_F_1326835055_xWwsKmGQesgjMyKJeczSBFmWWqPhPaXF.jpg' };
@@ -41,7 +42,7 @@ export const ProjectDetailScreen = ({ route, navigation }: Props) => {
         setError(null);
         
         // Usar solo el ID del proyecto para la API, ignorando el slug
-        const url = `http://localhost:3000/api/projects/${projectId}`;
+        const url = `${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${projectId}`;
         console.log('Obteniendo detalles del proyecto:', url);
         const response = await apiClient.fetchWithAuth(url);
         const data = await response.json();

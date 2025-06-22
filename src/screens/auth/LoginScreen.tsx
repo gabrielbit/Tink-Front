@@ -5,6 +5,7 @@ import { useTheme } from '@shopify/restyle';
 import { Theme } from '../../theme/theme';
 import { useAuth } from '../../context/AuthContext';
 import { Props } from '../../navigation/types';
+import { buildApiUrl, API_CONFIG } from '../../config/constants';
 
 export const LoginScreen = ({ navigation }: Props) => {
   const [email, setEmail] = useState('');
@@ -24,8 +25,9 @@ export const LoginScreen = ({ navigation }: Props) => {
       
       // Para desarrollo/pruebas: URL configurable según entorno
       // Puedes cambiar esto a tu URL real de la API
-      const API_URL = 'http://localhost:3000/api/auth/login';
-      
+      // URL de login obtenida de la configuración centralizada
+      const API_URL = buildApiUrl(API_CONFIG.AUTH.LOGIN);      
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {

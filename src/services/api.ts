@@ -1,6 +1,7 @@
 // Tipos para la API de organizaciones
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
+import { API_CONFIG, buildApiUrl } from '../config/constants';
 
 export interface Organization {
   id: string;
@@ -95,7 +96,7 @@ export interface ProjectParams {
   page?: number;
 }
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 // Cliente API con manejo de tokens
 export const apiClient = {
@@ -162,7 +163,7 @@ export const apiClient = {
         return false;
       }
       
-      const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+      const response = await fetch(buildApiUrl(API_CONFIG.AUTH.REFRESH_TOKEN), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
