@@ -14,6 +14,10 @@ export interface Organization {
   facebookUrl?: string;
   websiteUrl?: string;
   slug?: string;
+  mainImage?: string;
+  mainImageUrl?: string;
+  country?: string;
+  images?: ProjectImage[];
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +25,22 @@ export interface Organization {
 export interface Category {
   id: string;
   name: string;
+  color?: string;
+}
+
+export interface ProjectImage {
+  id: string;
+  entity_id: string;
+  entity_type: string;
+  filename: string;
+  path: string;
+  url: string;
+  is_main: boolean;
+  mimetype: string;
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface Project {
@@ -35,6 +55,8 @@ export interface Project {
   maxAmount: number;
   expectedImpact: string;
   featured: boolean;
+  mainImageUrl?: string;
+  images?: ProjectImage[];
   createdAt: string;
   updatedAt: string;
   organization?: Organization;

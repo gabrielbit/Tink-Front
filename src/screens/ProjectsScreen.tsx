@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, RefreshControl, Alert, useWindowDimensions, Platform } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Project, ProjectParams } from '../services/api';
@@ -27,6 +27,21 @@ export const ProjectsScreen = ({ navigation }: Props) => {
   const [totalItems, setTotalItems] = useState(0);
   const [filterParams, setFilterParams] = useState<ProjectParams>({});
   const pageSize = 10;
+  
+  // Obtener las dimensiones de la pantalla para diseño responsive
+  const { width } = useWindowDimensions();
+  const isWeb = Platform.OS === 'web';
+  
+  // Determinar el número de columnas según el ancho de la pantalla
+  const getColumnCount = () => {
+    if (!isWeb) return 1; // Móvil siempre 1 columna
+    
+    if (width > 1400) return 3; // Pantallas muy anchas: 3 columnas
+    if (width > 800) return 2; // Pantallas medianas: 2 columnas
+    return 1; // Pantallas pequeñas: 1 columna
+  };
+  
+  const columnCount = getColumnCount();
 
   // Función local para cargar proyectos
   const fetchProjects = async (params: ProjectParams = {}) => {
@@ -157,15 +172,18 @@ export const ProjectsScreen = ({ navigation }: Props) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>
-        Proyectos
-      </Text>
-      
-      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-        {totalItems} {totalItems === 1 ? 'proyecto encontrado' : 'proyectos encontrados'}
-      </Text>
-      
-      <ProjectFilter onFilter={handleFilterChange} />
+      <View style={styles.titleRow}>
+        <ProjectFilter onFilter={handleFilterChange} />
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>
+            Proyectos
+          </Text>
+          
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            {totalItems} {totalItems === 1 ? 'proyecto encontrado' : 'proyectos encontrados'}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -177,12 +195,12 @@ export const ProjectsScreen = ({ navigation }: Props) => {
       <View style={styles.emptyContainer}>
         {/* Icono o ilustración */}
         <View style={styles.emptyIconContainer}>
-          <View style={[styles.emptyIcon, { backgroundColor: theme.colors.purpleLight }]}>
+          <View style={[styles.emptyIcon, { backgroundColor: theme.colors.primaryLight }]}>
             <Text style={styles.emptyIconText}>📋</Text>
           </View>
         </View>
         
-        <Text style={[styles.emptyTitle, { color: theme.colors.purplePrimary }]}>
+        <Text style={[styles.emptyTitle, { color: theme.colors.primary }]}>
           {hasActiveFilters 
             ? 'No se encontraron proyectos' 
             : 'Aún no hay proyectos'}
@@ -222,13 +240,46 @@ export const ProjectsScreen = ({ navigation }: Props) => {
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.purplePrimary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
           Cargando proyectos...
         </Text>
       </View>
     );
   }
+
+  // Renderizar el contenido de manera diferente según la plataforma
+  const content = (
+    <FlatList
+      data={projects}
+      renderItem={({ item }) => (
+        <ProjectCard 
+          project={item} 
+          onViewDetails={handleViewProjectDetails}
+        />
+      )}
+      key={`column-${columnCount}`}
+      numColumns={columnCount}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={[
+        styles.listContent,
+        projects.length === 0 && styles.emptyListContent,
+        isWeb && styles.webListContent
+      ]}
+      columnWrapperStyle={columnCount > 1 ? styles.columnWrapper : undefined}
+      ListHeaderComponent={renderHeader}
+      ListEmptyComponent={renderEmpty}
+      ListFooterComponent={projects.length > 0 ? renderFooter : null}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={[theme.colors.primary]}
+          tintColor={theme.colors.primary}
+        />
+      }
+    />
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.mainBackground }]}>
@@ -242,31 +293,9 @@ export const ProjectsScreen = ({ navigation }: Props) => {
           />
         </View>
       ) : (
-        <FlatList
-          data={projects}
-          renderItem={({ item }) => (
-            <ProjectCard 
-              project={item} 
-              onViewDetails={handleViewProjectDetails}
-            />
-          )}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.listContent,
-            projects.length === 0 && styles.emptyListContent
-          ]}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmpty}
-          ListFooterComponent={projects.length > 0 ? renderFooter : null}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={[theme.colors.purplePrimary]}
-              tintColor={theme.colors.purplePrimary}
-            />
-          }
-        />
+        <View style={[styles.contentWrapper, isWeb && styles.webContentWrapper]}>
+          {content}
+        </View>
       )}
     </View>
   );
@@ -276,8 +305,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  contentWrapper: {
+    flex: 1,
+    width: '100%',
+  },
+  webContentWrapper: {
+    alignItems: 'center',
+  },
+  webListContent: {
+    maxWidth: 1600,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    gap: 16,
+  },
   header: {
     padding: 16,
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    marginLeft: 16,
   },
   title: {
     fontSize: 24,
@@ -319,6 +373,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     padding: 24,
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   emptyIconContainer: {
     marginBottom: 20,

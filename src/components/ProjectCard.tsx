@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { Project } from '../services/api';
@@ -15,6 +15,7 @@ interface ProjectCardProps {
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails }) => {
   const theme = useTheme<Theme>();
   const navigation = useNavigation<NativeStackNavigationProp<ProjectsStackParamList>>();
+  const isWeb = Platform.OS === 'web';
 
   const formatDate = (dateString: string) => {
     try {
@@ -50,88 +51,154 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onViewDetails
     }
   };
 
+  // Placeholder para imagen si no hay una disponible
+  const fallbackImage = { uri: 'https://as1.ftcdn.net/v2/jpg/13/26/83/50/1000_F_1326835055_xWwsKmGQesgjMyKJeczSBFmWWqPhPaXF.jpg' };
+  
+  // Obtener la URL de la imagen del proyecto
+  let imageUrl = fallbackImage.uri;
+  
+  // Tener en cuenta la estructura vista en la captura
+  if (project.images && project.images.length > 0) {
+    const mainImage = project.images.find(img => img.is_main === true);
+    if (mainImage && mainImage.path) {
+      imageUrl = mainImage.path;
+    } else if (project.images[0].path) {
+      imageUrl = project.images[0].path;
+    }
+  }
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.white }]}>
-      {project.featured && (
-        <View style={[styles.featuredBadge, { backgroundColor: theme.colors.purpleLight }]}>
-          <Text style={[styles.featuredText, { color: theme.colors.purplePrimary }]}>Destacado</Text>
-        </View>
-      )}
-      
-      <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>{project.title}</Text>
-      <Text style={[styles.description, { color: theme.colors.textPrimary }]}>{project.description}</Text>
-      
-      <View style={styles.infoContainer}>
-        <View style={styles.infoItem}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textPrimary }]}>Ubicación:</Text>
-          <Text style={[styles.infoValue, { color: theme.colors.textSecondary }]}>
+    <TouchableOpacity 
+      style={[
+        styles.container, 
+        { backgroundColor: theme.colors.white },
+        isWeb && styles.webContainer
+      ]}
+      onPress={handleViewDetails}
+    >
+      <View style={styles.imageContainer}>
+        <Image 
+          source={{ uri: imageUrl }} 
+          style={styles.image} 
+          resizeMode="cover"
+        />
+        
+        {project.featured && (
+          <View style={[styles.featuredBadge, { backgroundColor: theme.colors.primaryLight }]}>
+            <Text style={[styles.badgeText, { color: theme.colors.primary }]}>Destacado</Text>
+          </View>
+        )}
+        
+        <View style={[styles.locationBadge, { backgroundColor: theme.colors.white }]}>
+          <Text style={[styles.badgeText, { color: theme.colors.textPrimary }]}>
             {project.city}, {project.country}
           </Text>
         </View>
-        
-        <View style={styles.infoItem}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textPrimary }]}>Fechas:</Text>
-          <Text style={[styles.infoValue, { color: theme.colors.textSecondary }]}>
-            {formatDate(project.startDate)} - {formatDate(project.endDate)}
-          </Text>
-        </View>
-        
-        <View style={styles.infoItem}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textPrimary }]}>Monto máximo:</Text>
-          <Text style={[styles.infoValue, { color: theme.colors.textSecondary }]}>
-            ${project.maxAmount}
-          </Text>
-        </View>
-        
-        {project.organization && (
-          <View style={styles.infoItem}>
-            <Text style={[styles.infoLabel, { color: theme.colors.textPrimary }]}>Organización:</Text>
-            <Text style={[styles.infoValue, { color: theme.colors.purplePrimary }]}>
-              {project.organization.name}
-            </Text>
-          </View>
-        )}
       </View>
       
-      {project.categories && project.categories.length > 0 && (
-        <View style={styles.categoriesContainer}>
-          <Text style={[styles.categoriesLabel, { color: theme.colors.textPrimary }]}>Categorías:</Text>
-          <View style={styles.categoriesList}>
-            {project.categories.map(category => (
-              <View 
-                key={category.id} 
-                style={[styles.categoryTag, { backgroundColor: theme.colors.purpleLight }]}
-              >
-                <Text style={[styles.categoryText, { color: theme.colors.purplePrimary }]}>
-                  {category.name}
-                </Text>
-              </View>
-            ))}
-          </View>
+      <View style={styles.contentContainer}>
+        <Text style={[styles.title, { color: theme.colors.primary }]}>{project.title}</Text>
+        
+        <Text 
+          style={[styles.description, { color: theme.colors.textPrimary }]}
+          numberOfLines={2}
+        >
+          {project.description}
+        </Text>
+        
+        <View style={styles.metaInfo}>
+          <Text style={[styles.metaText, { color: theme.colors.textSecondary }]}>
+            Fechas: {formatDate(project.startDate)} - {formatDate(project.endDate)}
+          </Text>
+          
+          <Text style={[styles.metaText, { color: theme.colors.textSecondary }]}>
+            Monto máximo: ${project.maxAmount}
+          </Text>
+          
+          {project.organization && (
+            <Text style={[styles.organizationText, { color: theme.colors.primary }]}>
+              {project.organization.name}
+            </Text>
+          )}
         </View>
-      )}
-      
-      <TouchableOpacity 
-        style={[styles.button, { backgroundColor: theme.colors.purplePrimary }]}
-        onPress={handleViewDetails}
-      >
-        <Text style={[styles.buttonText, { color: theme.colors.white }]}>Ver detalles</Text>
-      </TouchableOpacity>
-    </View>
+        
+        {project.categories && project.categories.length > 0 && (
+          <View style={styles.categoriesContainer}>
+            {project.categories.map(category => {
+              // Usar el color de la categoría desde la API o un color por defecto
+              const categoryColor = category.color || theme.colors.primary;
+              
+              return (
+                <View 
+                  key={category.id} 
+                  style={[
+                    styles.categoryTag, 
+                    { 
+                      backgroundColor: theme.colors.white,
+                      borderColor: categoryColor,
+                      borderWidth: 2
+                    }
+                  ]}
+                >
+                  <Text style={[styles.categoryText, { color: categoryColor }]}>
+                    {category.name}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+        
+        <View style={styles.footer}>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { 
+                  backgroundColor: theme.colors.primary,
+                  width: `${Math.min(Math.random() * 100, 100)}%`
+                }
+              ]} 
+            />
+          </View>
+          
+          <TouchableOpacity 
+            style={[styles.detailsButton, { backgroundColor: theme.colors.primary }]}
+            onPress={handleViewDetails}
+          >
+            <Text style={[styles.buttonText, { color: theme.colors.white }]}>Ver</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    overflow: 'hidden',
+    flex: 1,
+  },
+  webContainer: {
+    margin: 8,
+    maxWidth: '100%',
+    flexBasis: 'auto',
+  },
+  imageContainer: {
     position: 'relative',
+    width: '100%',
+    height: 180,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   featuredBadge: {
     position: 'absolute',
@@ -139,11 +206,27 @@ const styles = StyleSheet.create({
     right: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 20,
   },
-  featuredText: {
+  locationBadge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  badgeText: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '500',
+  },
+  contentContainer: {
+    padding: 16,
   },
   title: {
     fontSize: 18,
@@ -152,38 +235,30 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: 12,
+    lineHeight: 20,
   },
-  infoContainer: {
-    marginBottom: 16,
+  metaInfo: {
+    marginBottom: 12,
   },
-  infoItem: {
-    marginBottom: 8,
+  metaText: {
+    fontSize: 13,
+    marginBottom: 4,
   },
-  infoLabel: {
-    fontWeight: '600',
+  organizationText: {
     fontSize: 14,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 4,
   },
   categoriesContainer: {
-    marginBottom: 16,
-  },
-  categoriesLabel: {
-    fontWeight: '600',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  categoriesList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginBottom: 12,
   },
   categoryTag: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 20,
     marginRight: 8,
     marginBottom: 8,
   },
@@ -191,13 +266,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  button: {
-    paddingVertical: 12,
-    borderRadius: 8,
+  footer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  progressBar: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#EEEEEE',
+    borderRadius: 4,
+    marginRight: 12,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  detailsButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   }
 }); 

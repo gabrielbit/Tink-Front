@@ -20,18 +20,18 @@ export const Button = ({
 
   const backgroundColor = 
     variant === 'primary' 
-      ? theme.colors.purplePrimary
+      ? theme.colors.primary
       : 'transparent';
   
   const textColor = 
     variant === 'primary'
       ? theme.colors.white
-      : theme.colors.purplePrimary;
+      : theme.colors.primary;
 
   const buttonStyle = [
     styles.button,
     { backgroundColor },
-    variant === 'secondary' && styles.secondaryButton,
+    variant === 'secondary' && { borderColor: theme.colors.primary, borderWidth: 1 },
     disabled && styles.disabledButton,
   ];
 
@@ -59,10 +59,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginVertical: 8,
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: '#6200EE',
   },
   disabledButton: {
     opacity: 0.5,
