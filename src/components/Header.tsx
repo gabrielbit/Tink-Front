@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, StatusBar, Dimensions } from 'react-native';
 import { useTheme } from '@shopify/restyle';
 import { Theme } from '../theme/theme';
 import { useAuth } from '../context/AuthContext';
@@ -13,9 +13,18 @@ export const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
   const theme = useTheme<Theme>();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const { width } = Dimensions.get('window');
   
-  // Calcula el paddingTop basado en la plataforma y los insets de safe area
-  const headerPaddingTop = Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight || 0;
+  // Mejor cálculo del padding para diferentes dispositivos
+  const getHeaderPaddingTop = () => {
+    if (Platform.OS === 'web') {
+      // En web, usar un padding fijo que funcione en móviles
+      return 10;
+    }
+    return Platform.OS === 'ios' ? Math.max(insets.top, 20) : StatusBar.currentHeight || 0;
+  };
+  
+  const headerPaddingTop = getHeaderPaddingTop();
 
   return (
     <View 
@@ -75,6 +84,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+    // Asegurar que el header sea visible en móviles
+    position: 'relative',
+    zIndex: 1000,
+    width: '100%',
   },
   menuButton: {
     width: 40,
