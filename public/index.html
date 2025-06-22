@@ -7,8 +7,13 @@
     <!-- Viewport optimizado para móviles reales -->
     <meta 
       name="viewport" 
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover" 
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5, user-scalable=yes, viewport-fit=cover, shrink-to-fit=no" 
     />
+    
+    <!-- Meta tags específicos para Chrome móvil -->
+    <meta name="theme-color" content="#07a885" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-status-bar-style" content="default" />
     
     <!-- Prevenir zoom automático en inputs en iOS -->
     <meta name="format-detection" content="telephone=no" />
@@ -74,6 +79,39 @@
         }
       }
       
+      /* Estilos específicos para Chrome móvil */
+      @media screen and (-webkit-min-device-pixel-ratio: 0) {
+        body {
+          -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+        }
+        
+        #root {
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+        }
+      }
+      
+      /* Fixes para Chrome Android específicamente */
+      @media screen and (max-width: 768px) {
+        body {
+          position: relative !important;
+          min-height: 100vh !important;
+          width: 100vw !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+        }
+        
+        #root {
+          width: 100% !important;
+          min-height: 100vh !important;
+          position: relative !important;
+        }
+      }
+      
       /* Debug helper - remover en producción */
       .debug-mobile {
         position: fixed;
@@ -95,7 +133,8 @@
     <!-- Debug info para móviles (temporal) -->
     <div class="debug-mobile" id="debug-info">
       Viewport: <span id="viewport-size"></span><br>
-      User Agent: Mobile
+      Browser: <span id="browser-info">Detectando...</span><br>
+      Zoom: <span id="zoom-level">1</span>
     </div>
     
     <noscript>
@@ -106,24 +145,56 @@
     
     <!-- Script para debug de viewport -->
     <script>
+      // Detectar navegador
+      function detectBrowser() {
+        const ua = navigator.userAgent;
+        if (ua.includes('Chrome') && ua.includes('Mobile')) return 'Chrome Mobile';
+        if (ua.includes('Safari') && ua.includes('Mobile')) return 'Safari Mobile';
+        if (ua.includes('Chrome')) return 'Chrome Desktop';
+        if (ua.includes('Safari')) return 'Safari Desktop';
+        return 'Otro';
+      }
+      
       // Debug viewport info
       function updateDebugInfo() {
         const debugEl = document.getElementById('debug-info');
         const sizeEl = document.getElementById('viewport-size');
-        if (debugEl && sizeEl) {
+        const browserEl = document.getElementById('browser-info');
+        const zoomEl = document.getElementById('zoom-level');
+        
+        if (debugEl && sizeEl && browserEl && zoomEl) {
           sizeEl.textContent = window.innerWidth + 'x' + window.innerHeight;
+          browserEl.textContent = detectBrowser();
+          
+          // Calcular zoom level aproximado
+          const zoom = Math.round((window.outerWidth / window.innerWidth) * 100) / 100;
+          zoomEl.textContent = zoom + 'x';
         }
       }
       
-      // Ocultar debug info después de 5 segundos
+      // Para Chrome móvil, aplicar fix adicional
+      if (navigator.userAgent.includes('Chrome') && navigator.userAgent.includes('Mobile')) {
+        document.addEventListener('DOMContentLoaded', function() {
+          // Force reflow para Chrome móvil
+          const root = document.getElementById('root');
+          if (root) {
+            root.style.display = 'none';
+            root.offsetHeight; // trigger reflow
+            root.style.display = 'flex';
+          }
+        });
+      }
+      
+      // Ocultar debug info después de 8 segundos (más tiempo para Chrome)
       setTimeout(() => {
         const debugEl = document.getElementById('debug-info');
         if (debugEl) debugEl.style.display = 'none';
-      }, 5000);
+      }, 8000);
       
       updateDebugInfo();
       window.addEventListener('resize', updateDebugInfo);
       window.addEventListener('orientationchange', updateDebugInfo);
+      window.addEventListener('load', updateDebugInfo);
     </script>
   </body>
 </html> 
