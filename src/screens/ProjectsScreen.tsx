@@ -8,6 +8,7 @@ import { ProjectCard } from '../components/ProjectCard';
 import { ProjectFilter } from '../components/ProjectFilter';
 import { Pagination } from '../components/Pagination';
 import { Button } from '../components/Button';
+import { DebugInfo } from '../components/DebugInfo';
 import { useAuth } from '../context/AuthContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ProjectsStackParamList } from '../navigation/ProjectsStackNavigator';
@@ -294,12 +295,15 @@ export const ProjectsScreen = ({ navigation }: Props) => {
         </View>
       ) : (
         <View style={[styles.contentWrapper, isWeb && styles.webContentWrapper]}>
-          {content}
-        </View>
-      )}
-    </View>
-  );
-};
+                     {content}
+         </View>
+       )}
+       
+       {/* Componente de debugging - solo visible en desarrollo */}
+       <DebugInfo />
+     </View>
+   );
+ };
 
 const styles = StyleSheet.create({
   container: {
