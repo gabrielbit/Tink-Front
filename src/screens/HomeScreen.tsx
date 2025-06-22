@@ -10,7 +10,7 @@ export const HomeScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.mainBackground }]}>
-      <Text style={[styles.title, { color: theme.colors.purplePrimary }]}>
+      <Text style={[styles.title, { color: theme.colors.primary }]}>
         Inicio
       </Text>
       <Text style={[styles.subtitle, { color: theme.colors.textPrimary }]}>
