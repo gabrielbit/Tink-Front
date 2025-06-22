@@ -112,30 +112,14 @@
         }
       }
       
-      /* Debug helper - remover en producción */
-      .debug-mobile {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        background: rgba(255, 0, 0, 0.8);
-        color: white;
-        padding: 5px;
-        font-size: 12px;
-        z-index: 9999;
-        border-radius: 3px;
-      }
+      /* Debug styles removidos - ya no son necesarios */
     </style>
     
     <link rel="shortcut icon" href="/favicon.ico" />
   </head>
 
   <body>
-    <!-- Debug info para móviles (temporal) -->
-    <div class="debug-mobile" id="debug-info">
-      Viewport: <span id="viewport-size"></span><br>
-      Browser: <span id="browser-info">Detectando...</span><br>
-      Zoom: <span id="zoom-level">1</span>
-    </div>
+    <!-- Debug info removido - ya no es necesario -->
     
     <noscript>
       Necesitas habilitar JavaScript para usar esta aplicación.
@@ -155,22 +139,7 @@
         return 'Otro';
       }
       
-      // Debug viewport info
-      function updateDebugInfo() {
-        const debugEl = document.getElementById('debug-info');
-        const sizeEl = document.getElementById('viewport-size');
-        const browserEl = document.getElementById('browser-info');
-        const zoomEl = document.getElementById('zoom-level');
-        
-        if (debugEl && sizeEl && browserEl && zoomEl) {
-          sizeEl.textContent = window.innerWidth + 'x' + window.innerHeight;
-          browserEl.textContent = detectBrowser();
-          
-          // Calcular zoom level aproximado
-          const zoom = Math.round((window.outerWidth / window.innerWidth) * 100) / 100;
-          zoomEl.textContent = zoom + 'x';
-        }
-      }
+      // Debug info functions removidas - ya no son necesarias
       
       // Para Chrome móvil, aplicar fix adicional
       if (navigator.userAgent.includes('Chrome') && navigator.userAgent.includes('Mobile')) {
@@ -185,16 +154,7 @@
         });
       }
       
-      // Ocultar debug info después de 8 segundos (más tiempo para Chrome)
-      setTimeout(() => {
-        const debugEl = document.getElementById('debug-info');
-        if (debugEl) debugEl.style.display = 'none';
-      }, 8000);
-      
-      updateDebugInfo();
-      window.addEventListener('resize', updateDebugInfo);
-      window.addEventListener('orientationchange', updateDebugInfo);
-      window.addEventListener('load', updateDebugInfo);
+             // Debug event listeners removidos - ya no son necesarios
     </script>
   </body>
 </html> 
